@@ -1,70 +1,49 @@
 import React, { useState, useEffect } from "react";
+import { uuid } from "uuidv4";
 
 function Board() {
   const gridWidth = 10;
   const gridHeight = 10;
   const mineCount = 8;
-  const [grid, setGrid] = useState([]);
+  const [lv1Grids, setLv1Grids] = useState([]);
   const [minePositions, setMinePositions] = useState({});
-
+  const [cell, setCell] = useState({});
   useEffect(() => {
     const _grid = [];
     for (let i = 0; i < gridHeight; i++) {
       const row = [];
       for (let j = 0; j < gridWidth; j++) {
-        row.push(0);
+        let newObj = {
+          x: i,
+          y: j,
+          isMine: false,
+          neighbour: 0,
+          isRevealed: false,
+          isEmpty: false,
+          isFlagged: false,
+        };
+
+        row.push(newObj);
       }
       _grid.push(row);
     }
-    setGrid(_grid);
-
     let remainMineCount = mineCount;
     while (remainMineCount > 0) {
-      const x = Math.round(Math.random() * gridWidth);
-      const y = Math.round(Math.random() * gridHeight);
+      const x = Math.round(Math.random() * (gridWidth - 1));
+      const y = Math.round(Math.random() * (gridHeight - 1));
       const key = `${x}_${y}`;
-      if (!minePositions[key]) {
+      if (!minePositions[key] && _grid.length > 0) {
         minePositions[key] = true;
+        _grid[x][y].isMine = true;
         remainMineCount--;
       }
     }
+
+    setLv1Grids(_grid);
     setMinePositions({ ...minePositions });
 
-    console.log(_grid, minePositions);
-  }, [minePositions]);
-
-  function openMineField(x, y) {
-    if (grid[x][y] !== 0) return;
-    const key = `${x}_${y}`;
-    if (minePositions[key] === true) {
-      alert("game over");
-      return;
-    }
-
-    grid[x][y] = 1;
-    setGrid([...grid]);
-
-    if (x > 0 && y > 0) {
-      openMineField(x - 1, y - 1);
-    }
-    if (y > 0) {
-      openMineField(x, y - 1);
-    }
-    if (x < gridWidth - 1 && y > 0) {
-      openMineField(x + 1, y - 1);
-    }
-    if (x < gridWidth - 1) {
-      openMineField(x + 1, y);
-    }
-    if (x < gridWidth - 1 && y < gridHeight - 1) {
-      openMineField(x + 1, y + 1);
-    }
-    if (y < gridHeight - 1) {
-      openMineField(x, y + 1);
-    }
-
-    // mở những ô không có mìn khi click.
-  }
+    console.log("OUTPUT: Board -> minePositions", minePositions);
+  }, []);
 
   /**
    * [
@@ -73,9 +52,58 @@ function Board() {
    * ]
    */
   return (
-    <div>
-      this is app page
-      <p>hello</p>
+    <div key={uuid()} className="game">
+      {lv1Grids.length > 0 ? (
+        lv1Grids.map((lv2Grids) =>
+          lv2Grids.map((grid) => {
+            const getValue = (props) => {
+              if (!props.isRevealed) {
+                return props.isFlagged ? "🚩" : null;
+              }
+              if (props.isMine) {
+                return "💣";
+              }
+              if (props.neighbour === 0) {
+                return null;
+              }
+              return props.neighbour;
+            };
+            const _handleCellClick = () => {
+              console.log(grid);
+              setCell(grid);
+              const x = grid.x;
+              const y = grid.y;
+              if (lv1Grids[x][y].isRevealed || lv1Grids[x][y].isFlagged) {
+                return null;
+              }
+              if (lv1Grids[x][y].isMine) {
+                alert("game over");
+              }
+              // working on it.....
+              if (lv1Grids[x][y].isRevealed || !lv1Grids[x][y].isMine) {
+                return;
+              }
+              // working on it.....
+            };
+            return (
+              <div
+                key={uuid()}
+                className={`
+                cell ${grid.isRevealed ? "" : " hidden"} 
+                ${grid.isMine ? " is-mine" : ""} 
+                  ${grid.isFlagged ? " is-flag" : ""}
+                `}
+                onClick={() => _handleCellClick()}
+                value={grid}
+              >
+                {getValue(grid)}
+              </div>
+            );
+          })
+        )
+      ) : (
+        <p>nothing to show</p>
+      )}
     </div>
   );
 }
