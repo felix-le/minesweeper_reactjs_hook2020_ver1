@@ -45,6 +45,36 @@ function Board() {
     console.log("OUTPUT: Board -> minePositions", minePositions);
   }, []);
 
+  const getValue = (props) => {
+    if (!props.isRevealed) {
+      return props.isFlagged ? "🚩" : null;
+    }
+    if (props.isMine) {
+      return "💣";
+    }
+    if (props.neighbour === 0) {
+      return null;
+    }
+    return props.neighbour;
+  };
+
+  const _handleCellClick = (grid) => {
+    console.log(grid);
+    setCell(grid);
+    const x = grid.x;
+    const y = grid.y;
+    console.log(x, y);
+    lv1Grids[x][y].isRevealed = true;
+    if (lv1Grids[x][y].isRevealed && lv1Grids[x][y].isFlagged) {
+      return null;
+    }
+    if (lv1Grids[x][y].isMine) {
+      alert("game over");
+    }
+    setLv1Grids([...lv1Grids]);
+    // working on it.....
+  };
+
   /**
    * [
    * [0, 1, 0, 0, 0, 0, 0],
@@ -56,35 +86,6 @@ function Board() {
       {lv1Grids.length > 0 ? (
         lv1Grids.map((lv2Grids) =>
           lv2Grids.map((grid) => {
-            const getValue = (props) => {
-              if (!props.isRevealed) {
-                return props.isFlagged ? "🚩" : null;
-              }
-              if (props.isMine) {
-                return "💣";
-              }
-              if (props.neighbour === 0) {
-                return null;
-              }
-              return props.neighbour;
-            };
-            const _handleCellClick = () => {
-              console.log(grid);
-              setCell(grid);
-              const x = grid.x;
-              const y = grid.y;
-              if (lv1Grids[x][y].isRevealed || lv1Grids[x][y].isFlagged) {
-                return null;
-              }
-              if (lv1Grids[x][y].isMine) {
-                alert("game over");
-              }
-              // working on it.....
-              if (lv1Grids[x][y].isRevealed || !lv1Grids[x][y].isMine) {
-                return;
-              }
-              // working on it.....
-            };
             return (
               <div
                 key={uuid()}
@@ -93,7 +94,7 @@ function Board() {
                 ${grid.isMine ? " is-mine" : ""} 
                   ${grid.isFlagged ? " is-flag" : ""}
                 `}
-                onClick={() => _handleCellClick()}
+                onClick={() => _handleCellClick(grid)}
                 value={grid}
               >
                 {getValue(grid)}
